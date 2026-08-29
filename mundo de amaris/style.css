@@ -1,0 +1,815 @@
+/* ==========================================================================
+   AMARIS WORLD — FASE 1: LOBBY
+   Paleta: anochecer profundo con acentos rosa-aurora y dorado-estelar.
+   ========================================================================== */
+
+:root {
+  /* Color — cielo de anochecer */
+  --void: #0a0b16;
+  --twilight-1: #171233;
+  --twilight-2: #2d1b4e;
+  --twilight-3: #4a2c6d;
+
+  /* Color — acentos */
+  --glow-rose: #e8a3c0;
+  --glow-gold: #f2cf94;
+
+  /* Color — texto */
+  --mist: #c9c5e0;
+  --pure: #f8f5ff;
+
+  /* Tipografía */
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-body: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Ritmo / tiempos */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --portal-duration: 900ms;
+
+  /* Alto de viewport robusto para iOS (con fallback vía JS más abajo) */
+  --app-height: 100dvh;
+}
+
+/* -------------------------------------------------------------------- */
+/* Reset base                                                            */
+/* -------------------------------------------------------------------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  background: var(--void);
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--pure);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------- */
+/* Cielo de fondo                                                        */
+/* -------------------------------------------------------------------- */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 20%, var(--twilight-3) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, var(--twilight-2) 0%, transparent 65%),
+    linear-gradient(180deg, var(--twilight-1) 0%, var(--void) 100%);
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--pure);
+  will-change: opacity;
+  animation: twinkle var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow-gold) 0%, transparent 70%);
+  will-change: transform, opacity;
+  opacity: 0;
+  animation: floatMote var(--dur, 12s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* -------------------------------------------------------------------- */
+/* Layout principal                                                      */
+/* -------------------------------------------------------------------- */
+
+.app {
+  position: relative;
+  z-index: 1;
+  height: var(--app-height);
+  width: 100%;
+  /* El safe-area se aplica dentro de .screen (ver abajo), ya que .screen
+     cubre por completo la caja de .app y un padding aquí no tendría efecto. */
+}
+
+.stars-layer,
+.particles-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top)
+           calc(1.5rem + env(safe-area-inset-right))
+           env(safe-area-inset-bottom)
+           calc(1.5rem + env(safe-area-inset-left));
+  transition: opacity 500ms var(--ease-soft);
+}
+
+.screen[aria-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.screen[aria-hidden="false"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* -------------------------------------------------------------------- */
+/* Orbe — elemento firma                                                 */
+/* -------------------------------------------------------------------- */
+
+.orb {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: min(60vw, 320px);
+  height: min(60vw, 320px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, var(--glow-rose) 0%, var(--glow-gold) 35%, transparent 70%);
+  filter: blur(38px);
+  opacity: 0.85;
+  transform: translate(-50%, -50%) scale(1);
+  animation: orbPulse 6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.orb.is-opening {
+  animation: none;
+  transition: transform var(--portal-duration) var(--ease-soft),
+              opacity var(--portal-duration) var(--ease-soft);
+  transform: translate(-50%, -50%) scale(28);
+  opacity: 1;
+  filter: blur(60px);
+}
+
+/* -------------------------------------------------------------------- */
+/* Contenido del lobby                                                   */
+/* -------------------------------------------------------------------- */
+
+.lobby-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 90vw;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--mist);
+  opacity: 0.8;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 11vw, 4.5rem);
+  letter-spacing: 0.02em;
+  color: var(--pure);
+  text-shadow: 0 0 30px rgba(232, 163, 192, 0.45), 0 0 60px rgba(242, 207, 148, 0.25);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-top: 1.1rem;
+  font-weight: 300;
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  color: var(--mist);
+  letter-spacing: 0.01em;
+}
+
+/* -------------------------------------------------------------------- */
+/* Botón ENTRAR                                                          */
+/* -------------------------------------------------------------------- */
+
+.enter-btn {
+  margin-top: 2.75rem;
+  padding: 1rem 2.75rem;
+  min-height: 48px;
+  min-width: 44px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  color: var(--pure);
+  border: 1px solid rgba(248, 245, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(248, 245, 255, 0.05);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 rgba(232, 163, 192, 0);
+  transition: box-shadow 400ms var(--ease-soft),
+              border-color 400ms var(--ease-soft),
+              transform 250ms var(--ease-soft),
+              background 400ms var(--ease-soft);
+}
+
+.enter-btn:hover {
+  border-color: rgba(242, 207, 148, 0.7);
+  box-shadow: 0 0 24px rgba(232, 163, 192, 0.35);
+  background: rgba(248, 245, 255, 0.09);
+}
+
+.enter-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 14px rgba(232, 163, 192, 0.5);
+}
+
+.enter-btn:focus-visible {
+  outline: 2px solid var(--glow-gold);
+  outline-offset: 4px;
+}
+
+.enter-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* -------------------------------------------------------------------- */
+/* Estado 2 — Umbral                                                     */
+/* -------------------------------------------------------------------- */
+
+.threshold-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.threshold-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 500;
+  color: var(--pure);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--glow-gold);
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Estado final del umbral: se asienta tras ~1-1.5s en lugar de latir
+   indefinidamente, para que no dé sensación de carga infinita. */
+#thresholdScreen.is-settled .dots span {
+  animation: none;
+  opacity: 0.85;
+}
+
+/* -------------------------------------------------------------------- */
+/* Animaciones de entrada (stagger)                                      */
+/* -------------------------------------------------------------------- */
+
+[data-anim] {
+  opacity: 0;
+  animation: riseIn 900ms var(--ease-soft) forwards;
+}
+
+[data-anim="1"] { animation-delay: 200ms; }
+[data-anim="2"] { animation-delay: 380ms; }
+[data-anim="3"] { animation-delay: 560ms; }
+[data-anim="4"] { animation-delay: 740ms; }
+
+/* -------------------------------------------------------------------- */
+/* Keyframes                                                             */
+/* -------------------------------------------------------------------- */
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes orbPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.8; }
+  50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 1;   }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9;  }
+}
+
+@keyframes floatMote {
+  0%   { transform: translate(0, 0);          opacity: 0;    }
+  12%  { opacity: 0.6; }
+  50%  { transform: translate(8px, -46px);    opacity: 0.5;  }
+  88%  { opacity: 0.25; }
+  100% { transform: translate(-6px, -96px);   opacity: 0;    }
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.2; }
+  40%           { opacity: 1;   }
+}
+
+/* -------------------------------------------------------------------- */
+/* Movimiento reducido                                                   */
+/* -------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .star,
+  .particle,
+  .dots span,
+  [data-anim] {
+    animation: none !important;
+  }
+  [data-anim] { opacity: 1; }
+  .orb { opacity: 0.7; }
+  .orb.is-opening {
+    transition: opacity var(--portal-duration) ease;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .screen { transition: opacity 300ms ease; }
+  .dots span { opacity: 0.85; }
+}
+
+/* -------------------------------------------------------------------- */
+/* Orientación / pantallas pequeñas                                      */
+/* -------------------------------------------------------------------- */
+
+@media (max-height: 480px) {
+  .orb { top: 30%; width: min(40vh, 220px); height: min(40vh, 220px); }
+  .enter-btn { margin-top: 1.5rem; }
+}
+
+/* ==========================================================================
+   AMARIS WORLD — FASE 2: MUNDO PRINCIPAL
+   Extiende los tokens de :root y el sistema .screen[aria-hidden] de la
+   Fase 1. No modifica ninguna regla anterior a este bloque.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------- */
+/* Estado 3 — Mundo                                                      */
+/* -------------------------------------------------------------------- */
+
+.world-ambient,
+.world-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.world-ambient {
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 28% 22%, rgba(74, 44, 109, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 76% 76%, rgba(45, 27, 78, 0.5) 0%, transparent 65%);
+  transform: translate(var(--px, 0px), var(--py, 0px));
+  transition: transform 600ms var(--ease-soft);
+  will-change: transform;
+}
+
+.world-stage {
+  z-index: 2;
+}
+
+.zone-point {
+  position: absolute;
+  top: var(--y, 50%);
+  left: var(--x, 50%);
+  transform: translate(-50%, -50%) scale(1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  cursor: pointer;
+  transition: transform 350ms var(--ease-soft);
+}
+
+.zone-glyph {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow-gold) 0%, var(--glow-rose) 55%, transparent 75%);
+  box-shadow: 0 0 18px rgba(242, 207, 148, 0.6), 0 0 34px rgba(232, 163, 192, 0.35);
+  animation: zoneBreathe 5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.zone-glyph::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 1px solid var(--glow-gold);
+  opacity: 0.55;
+  animation: zoneRing 3.4s ease-out infinite;
+}
+
+.zone-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mist);
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 300ms var(--ease-soft), transform 300ms var(--ease-soft);
+  white-space: nowrap;
+}
+
+.zone-point:hover .zone-glyph,
+.zone-point:focus-visible .zone-glyph,
+.zone-point:active .zone-glyph {
+  box-shadow: 0 0 20px rgba(242, 207, 148, 0.75);
+}
+
+.zone-point:hover,
+.zone-point:focus-visible,
+.zone-point:active {
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.zone-point:hover .zone-label,
+.zone-point:focus-visible .zone-label,
+.zone-point:active .zone-label {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+.zone-point:focus-visible {
+  outline: 2px solid var(--glow-gold);
+  outline-offset: 6px;
+  border-radius: 999px;
+}
+
+@keyframes zoneBreathe {
+  0%, 100% { opacity: 0.75; transform: scale(1);    }
+  50%      { opacity: 1;    transform: scale(1.12); }
+}
+
+@keyframes zoneRing {
+  0%   { transform: scale(0.7); opacity: 0.55; }
+  70%  { opacity: 0.12; }
+  100% { transform: scale(1.9); opacity: 0;    }
+}
+
+/* -------------------------------------------------------------------- */
+/* Estado 4 — Zona                                                       */
+/* -------------------------------------------------------------------- */
+
+.zone-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  max-width: 90vw;
+}
+
+.back-btn {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mist);
+  padding: 0.6rem 0.4rem;
+  min-height: 44px;
+  transition: color 300ms var(--ease-soft);
+}
+
+.back-btn:hover,
+.back-btn:focus-visible {
+  color: var(--glow-gold);
+}
+
+.zone-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  color: var(--pure);
+}
+
+.zone-description {
+  color: var(--mist);
+  font-weight: 300;
+  max-width: 32rem;
+}
+
+/* -------------------------------------------------------------------- */
+/* Movimiento reducido y pantallas pequeñas — extensión de Fase 2         */
+/* -------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .zone-glyph { animation: none !important; }
+  .zone-glyph::before { animation: none !important; opacity: 0.3; }
+  .world-ambient { transition: none; transform: none; }
+}
+
+@media (max-height: 480px) {
+  .zone-label { font-size: 0.62rem; }
+}
+
+/* ==========================================================================
+   AMARIS WORLD — FASE 3: RECUERDOS
+   Extiende los tokens de :root y el sistema .screen[aria-hidden]. No
+   modifica ninguna regla anterior a este bloque.
+   ========================================================================== */
+
+/* -------------------------------------------------------------------- */
+/* Lista de recuerdos, dentro de la Zona                                 */
+/* -------------------------------------------------------------------- */
+
+.memory-list {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  max-width: 32rem;
+}
+
+.memory-point {
+  min-height: 44px;
+  padding: 0.65rem 1.15rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--mist);
+  border: 1px solid rgba(248, 245, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(248, 245, 255, 0.04);
+  transition: border-color 300ms var(--ease-soft),
+              box-shadow 300ms var(--ease-soft),
+              background 300ms var(--ease-soft),
+              transform 250ms var(--ease-soft);
+}
+
+.memory-point:hover,
+.memory-point:focus-visible {
+  border-color: rgba(242, 207, 148, 0.6);
+  box-shadow: 0 0 16px rgba(232, 163, 192, 0.3);
+  background: rgba(248, 245, 255, 0.08);
+}
+
+.memory-point:active {
+  transform: scale(0.96);
+}
+
+.memory-point:focus-visible {
+  outline: 2px solid var(--glow-gold);
+  outline-offset: 4px;
+}
+
+/* -------------------------------------------------------------------- */
+/* Estado 5 — Experiencia individual del recuerdo                        */
+/* -------------------------------------------------------------------- */
+
+.memory-detail-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  max-width: 90vw;
+}
+
+.memory-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 5.5vw, 2.3rem);
+  color: var(--pure);
+}
+
+.memory-text {
+  color: var(--mist);
+  font-weight: 300;
+  max-width: 32rem;
+}
+
+
+/* ==========================================================================
+   AMARIS WORLD — FASE 4: FONDO REAL + ANIMACIONES (MUNDO PRINCIPAL)
+   Rediseño puramente visual de #worldScreen. No modifica ningún selector
+   anterior a este bloque; solo añade capas decorativas encima de
+   .world-ambient y reestiliza .zone-glyph (marcador de zona).
+
+   El fondo es una imagen estática (assets/img/world-bg.png) — esta capa
+   solo le da "vida": respiración/zoom lento, viñeta cálida pulsante,
+   destellos extra en el cielo y luciérnagas cálidas flotando.
+
+   Nota: esa imagen incluye personajes con copyright de terceros —
+   úsala solo en un proyecto personal/privado, no en algo publicado
+   abiertamente.
+   ========================================================================== */
+
+:root {
+  --pixel-star: #f8f5ff;
+  --pixel-lantern-chain: #6b5a7a;
+  --pixel-lantern-frame: #caa14a;
+  --pixel-lantern-glow: #ffe6a8;
+  --pixel-window-glow: rgba(255, 217, 138, 0.75);
+
+  --font-pixel: 'Press Start 2P', var(--font-display);
+
+  --world-bg-url: url('assets/img/world-bg.png');
+}
+
+/* -------------------------------------------------------------------- */
+/* Contenedor de la escena — vive entre .world-ambient y .world-stage    */
+/* -------------------------------------------------------------------- */
+
+.pixel-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.world-stage {
+  z-index: 2; /* por encima de .pixel-scene */
+}
+
+/* Imagen de fondo con un "respiro" muy lento (zoom/parallax sutil) para
+   que la escena estática se sienta viva sin distraer del contenido. */
+.world-bg-image {
+  position: absolute;
+  inset: -2%;
+  background-image: var(--world-bg-url);
+  background-size: cover;
+  background-position: center bottom;
+  transform: scale(1.04);
+  animation: bgBreathe 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes bgBreathe {
+  0%, 100% { transform: scale(1.04) translate(0%, 0%); }
+  50%      { transform: scale(1.09) translate(-0.6%, -0.8%); }
+}
+
+/* Viñeta cálida que respira suavemente, para reforzar el foco central
+   (la zona del farol) sin tapar el resto de la escena. */
+.world-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 40% at 63% 82%, rgba(255, 200, 130, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 130% 100% at 50% 45%, transparent 55%, rgba(4, 3, 10, 0.5) 100%);
+  animation: overlayPulse 6s ease-in-out infinite;
+}
+
+@keyframes overlayPulse {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1;    }
+}
+
+/* Destellos extra en el cielo (generados por JS, ver script.js), sutiles,
+   para complementar las estrellas ya pintadas en la imagen. */
+.sky-twinkle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--pixel-star);
+  border-radius: 50%;
+  animation: twinkle var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Luciérnagas cálidas flotando cerca del suelo/farol */
+.pixel-firefly {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--pixel-lantern-glow);
+  box-shadow: 0 0 6px 2px var(--pixel-window-glow);
+  animation: fireflyDrift var(--dur, 8s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes fireflyDrift {
+  0%   { transform: translate(0, 0);         opacity: 0;    }
+  15%  { opacity: 0.9; }
+  50%  { transform: translate(14px, -30px);  opacity: 0.55; }
+  85%  { opacity: 0.75; }
+  100% { transform: translate(-10px, -60px); opacity: 0;    }
+}
+
+/* -------------------------------------------------------------------- */
+/* Marcador de zona: farol pixel-art colgante                            */
+/* -------------------------------------------------------------------- */
+
+.zone-glyph {
+  width: 15px;
+  height: 21px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow:
+    6px 0px 0 var(--pixel-lantern-chain),
+    6px 3px 0 var(--pixel-lantern-chain),
+    3px 6px 0 var(--pixel-lantern-frame),
+    6px 6px 0 var(--pixel-lantern-frame),
+    9px 6px 0 var(--pixel-lantern-frame),
+    3px 9px 0 var(--pixel-lantern-frame),
+    6px 9px 0 var(--pixel-lantern-glow),
+    9px 9px 0 var(--pixel-lantern-frame),
+    3px 12px 0 var(--pixel-lantern-frame),
+    6px 12px 0 var(--pixel-lantern-glow),
+    9px 12px 0 var(--pixel-lantern-frame),
+    3px 15px 0 var(--pixel-lantern-frame),
+    6px 15px 0 var(--pixel-lantern-frame),
+    9px 15px 0 var(--pixel-lantern-frame),
+    6px 18px 0 var(--pixel-lantern-frame);
+  filter: drop-shadow(0 0 5px var(--pixel-window-glow));
+  animation: lanternFlicker 2.6s ease-in-out infinite;
+}
+
+.zone-glyph::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border: none;
+  border-radius: 0;
+  background: radial-gradient(circle, var(--pixel-window-glow) 0%, transparent 75%);
+  opacity: 0.6;
+  animation: zoneRing 3.4s ease-out infinite;
+  filter: blur(2px);
+}
+
+.zone-point:hover .zone-glyph,
+.zone-point:focus-visible .zone-glyph,
+.zone-point:active .zone-glyph {
+  filter: drop-shadow(0 0 9px var(--pixel-window-glow));
+}
+
+.zone-label {
+  font-family: var(--font-pixel);
+  font-size: 0.55rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 6px rgba(10, 11, 22, 0.9);
+}
+
+@keyframes lanternFlicker {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 1;    }
+  50%      { transform: translate(-50%, -50%) scale(1.05); opacity: 0.88; }
+}
+
+/* -------------------------------------------------------------------- */
+/* Movimiento reducido y pantallas pequeñas — extensión Fase 4           */
+/* -------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .world-bg-image,
+  .world-bg-overlay,
+  .sky-twinkle,
+  .pixel-firefly,
+  .zone-glyph,
+  .zone-glyph::before {
+    animation: none !important;
+  }
+  .world-bg-image { transform: scale(1); }
+}

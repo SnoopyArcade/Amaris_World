@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Amaris World</title>
+  <meta name="description" content="Amaris World — un pequeño mundo digital." />
+  <meta name="theme-color" content="#0a0b16" />
+
+  <!-- Tipografías: Cormorant Garamond (título, serif elegante) + Jost (texto, ligera) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&family=Press+Start+2P&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Capa de fondo: cielo + estrellas + partículas (generadas por JS, puramente decorativas) -->
+  <div class="sky" aria-hidden="true">
+    <div class="stars-layer" id="starsLayer"></div>
+    <div class="particles-layer" id="particlesLayer"></div>
+  </div>
+
+  <main class="app">
+
+    <!-- ESTADO 1: Lobby de entrada -->
+    <section class="screen screen--lobby" id="lobbyScreen" aria-hidden="false">
+      <div class="orb" id="orb" aria-hidden="true"></div>
+
+      <div class="lobby-content">
+        <p class="eyebrow" data-anim="1">bienvenida a</p>
+        <h1 class="title" data-anim="2">Amaris World</h1>
+        <p class="subtitle" data-anim="3">Un mundo pequeño, construido solo para ti.</p>
+
+        <button class="enter-btn" id="enterBtn" data-anim="4" type="button">
+          <span>ENTRAR</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ESTADO 2: Umbral — siguiente estado del lobby tras pulsar ENTRAR -->
+    <!-- (Las fases posteriores: recuerdos, mapa, música, carta, etc. NO se implementan aquí) -->
+    <section class="screen screen--threshold" id="thresholdScreen" aria-hidden="true">
+      <div class="threshold-content">
+        <p class="threshold-text">Tu mundo está despertando</p>
+        <span class="dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </div>
+    </section>
+
+    <!-- ESTADO 3: Mundo Principal — Fase 2. Se revela automáticamente al final
+         de goToThreshold() (Fase 1), sin alterar su lógica interna. -->
+    <section class="screen screen--world" id="worldScreen" aria-hidden="true">
+      <div class="world-ambient" aria-hidden="true"></div>
+
+      <!-- FASE 4: fondo real (assets/img/world-bg.png) + capas de animación
+           encima (respiración/zoom, viñeta cálida, destellos extra,
+           luciérnagas). Puramente visual: no interfiere con el sistema
+           de zonas ni con su lógica de eventos. -->
+      <div class="pixel-scene" id="pixelScene" aria-hidden="true">
+        <div class="world-bg-image"></div>
+        <div class="world-bg-overlay"></div>
+        <div class="sky-twinkle-layer" id="skyTwinkleLayer"></div>
+        <div class="fireflies-layer" id="firefliesLayer"></div>
+      </div>
+
+      <div class="world-stage" id="worldStage">
+        <!-- Zonas inyectadas por renderWorld() a partir de data/zones.js -->
+      </div>
+    </section>
+
+    <!-- ESTADO 4: Zona — contenedor preparado para recuerdos futuros.
+         Todavía sin contenido real (fotos, música, etc.), solo el sistema. -->
+    <section class="screen screen--zone" id="zoneScreen" aria-hidden="true">
+      <div class="zone-content">
+        <button class="back-btn" id="backToWorldBtn" type="button">
+          <span>← VOLVER AL MUNDO</span>
+        </button>
+        <div class="zone-body" id="zoneBody">
+          <!-- Título y descripción de la zona, poblados por populateZoneContent() -->
+        </div>
+        <div class="memory-list" id="memoryList">
+          <!-- Recuerdos de esta zona, inyectados por renderMemories() -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO 5: Experiencia individual de un recuerdo — Fase 3.
+         Todavía sin contenido real (fotos/audio), solo el sistema. -->
+    <section class="screen screen--memory" id="memoryDetailScreen" aria-hidden="true">
+      <div class="memory-detail-content">
+        <button class="back-btn" id="backToZoneBtn" type="button">
+          <span>← VOLVER A LA ZONA</span>
+        </button>
+        <div class="memory-body" id="memoryBody">
+          <!-- Título y contenido del recuerdo, poblados por populateMemoryContent() -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!--
+    NOTA PARA FASES FUTURAS (audio):
+    Aquí podría integrarse un <audio> de ambiente para el lobby,
+    activado únicamente por interacción del usuario (nunca autoplay).
+    Ejemplo futuro:
+    <audio id="ambientAudio" src="assets/music/lobby-theme.mp3" preload="none"></audio>
+  -->
+
+  <script src="data/zones.js"></script>
+  <script src="data/memories.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
